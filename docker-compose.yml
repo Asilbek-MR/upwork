@@ -1,0 +1,50 @@
+version: '2'
+services:
+  mariadb:
+    image: docker.io/bitnami/mariadb:11.1
+    environment:
+      - ALLOW_EMPTY_PASSWORD=yes
+      - MARIADB_USER=bn_suitecrm
+      - MARIADB_DATABASE=bitnami_suitecrm
+      - MARIADB_PASSWORD=bitnami123
+    volumes:
+      - 'mariadb_data:/bitnami/mariadb'
+
+  suitecrm:
+    image: docker.io/bitnami/suitecrm:8
+    ports:
+      - '80:8080'
+      - '443:8443'
+    environment:
+      - SUITECRM_DATABASE_HOST=mariadb
+      - SUITECRM_DATABASE_PORT_NUMBER=3306
+      - SUITECRM_DATABASE_USER=bn_suitecrm
+      - SUITECRM_DATABASE_NAME=bitnami_suitecrm
+      - SUITECRM_DATABASE_PASSWORD=bitnami123
+      - SUITECRM_PASSWORD=password
+      - ALLOW_EMPTY_PASSWORD=yes
+      - installer_locked=true
+    volumes:
+      - 'suitecrm_data:/bitnami/suitecrm'
+    depends_on:
+      - mariadb
+
+  fastapi:
+    build:
+      context: ./fastapi_app
+    ports:
+      - '8000:8000'
+    depends_on:
+      - mariadb
+    environment:
+      FASTAPI_DATABASE_HOST: mariadb
+      FASTAPI_DATABASE_PORT_NUMBER: 3306
+      FASTAPI_DATABASE_USER: bn_suitecrm
+      FASTAPI_DATABASE_NAME: bitnami_suitecrm
+      FASTAPI_DATABASE_PASSWORD: bitnami123
+
+volumes:
+  mariadb_data:
+    driver: local
+  suitecrm_data:
+    driver: local
