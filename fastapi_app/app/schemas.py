@@ -1,11 +1,11 @@
 import datetime as dt
 from pydantic import BaseModel
 
-from models import Lead
 class UserBase(BaseModel):
     email:str
 
 class UserCreate(UserBase):
+    email:str
     password:str
     class config:
         orm_mode=True
@@ -30,3 +30,7 @@ class Lead(LeadBase):
     created:dt.datetime
     class config:
         orm_mode=True
+
+class Posts(BaseModel):
+    title:str
+    summary:str
