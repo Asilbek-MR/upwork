@@ -9,7 +9,6 @@ class User(Base):
     id = sql.Column(sql.Integer, primary_key=True, index=True)
     email = sql.Column(sql.String, unique=True, index=True)
     password = sql.Column(sql.String)
-
     leads = orm.relationship("Lead", back_populates="owner")
     
 
