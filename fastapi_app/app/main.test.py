@@ -1,67 +1,72 @@
-# fastapi_app/app/main.py
-from fastapi import FastAPI, HTTPException, Depends
-from sqlalchemy import create_engine, Column, Integer, String
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
+import MySQLdb
+# Database configuration
+db_config = {
+    'host': 'localhost',
+    'user': 'your_db_username',
+    'passwd': 'your_db_password',
+    'db': 'your_db_name',
+}
 
-DATABASE_URL = "mysql+mysqlconnector://bn_suitecrm:bitnami123@mariadb/bitnami_suitecrm"
-
-# metadata = MetaData()
-
-# engine = create_engine(DATABASE_URL)
-# SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-
-
-try:
-    # Attempt to create the database engine
-    engine = create_engine(DATABASE_URL)
-    print("Database engine created successfully")
-except Exception as e:
-    print(f"Error creating database engine: {e}")
+# Create a connection to the database
+conn = MySQLdb.connect(**db_config)
 
 
-try:
-    # Attempt to create a session
-    SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-    print("Database session created successfully")
-except Exception as e:
-    print(f"Error creating database session: {e}")
-    
-Base = declarative_base()
-class Item(Base):
-    __tablename__ = "items"
-    id = Column(Integer, primary_key=True, index=True)
-    name = Column(String, index=True)
-    description = Column(String)
 
-Base.metadata.create_all(bind=engine)
+from fastapi import FastAPI, HTTPException
+from pydantic import BaseModel
 
-app = FastAPI(title="FastAPI, Docker, and Traefik")
+app = FastAPI()
 
-# Dependency to get the database session
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
-g = get_db()
+# Pydantic model to define the schema of the data
+class Item(BaseModel):
+    name: str
+    description: str = None
 
+# Route to create an item
+@app.post("/items/", response_model=Item)
+def create_item(item: Item):
+    cursor = conn.cursor()
+    query = "INSERT INTO items (name, description) VALUES (%s, %s)"
+    cursor.execute(query, (item.name, item.description))
+    conn.commit()
+    item.id = cursor.lastrowid
+    cursor.close()
+    return item
 
-@app.get("/tasks/")
-async def create_task():
-    return {"message": "Task created successfully"}
-# CRUD operations
-# @app.post("/items/")
-# async def create_item(item: Item, db: Session = Depends(get_db)):
-#     db.add(item)
-#     db.commit()
-#     db.refresh(item)
-#     return item
+# Route to read an item
+@app.get("/items/{item_id}", response_model=Item)
+def read_item(item_id: int):
+    cursor = conn.cursor()
+    query = "SELECT id, name, description FROM items WHERE id=%s"
+    cursor.execute(query, (item_id,))
+    item = cursor.fetchone()
+    cursor.close()
+    if item is None:
+        raise HTTPException(status_code=404, detail="Item not found")
+    return {"id": item[0], "name": item[1], "description": item[2]}
 
-# @app.get("/items/{item_id}")
-# async def read_item(item_id: int, db: Session = Depends(get_db)):
-#     item = db.query(Item).filter(Item.id == item_id).first()
-#     if item is None:
-#         raise HTTPException(status_code=404, detail="Item not found")
-#     return item
+# Route to update an item
+@app.put("/items/{item_id}", response_model=Item)
+def update_item(item_id: int, item: Item):
+    cursor = conn.cursor()
+    query = "UPDATE items SET name=%s, description=%s WHERE id=%s"
+    cursor.execute(query, (item.name, item.description, item_id))
+    conn.commit()
+    cursor.close()
+    item.id = item_id
+    return item
+
+# Route to delete an item
+@app.delete("/items/{item_id}", response_model=Item)
+def delete_item(item_id: int):
+    cursor = conn.cursor()
+    query = "DELETE FROM items WHERE id=%s"
+    cursor.execute(query, (item_id,))
+    conn.commit()
+    cursor.close()
+    return {"id": item_id}
+
+if __name__ == "__main__":
+    import uvicorn
+
+    uvicorn.run(app, host="localhost", port=8000)

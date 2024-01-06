@@ -3,9 +3,11 @@ import sqlalchemy.orm as orm
 from .schemas import UserCreate
 from .models import User, Post
 
-def create_database():
-    return Base.metadata.create_all(bind=engine)
+# def create_database():
+#     return Base.metadata.create_all(bind=engine)
 
+
+Base.metadata.create_all(bind=engine)
 def get_db():
     db=SessionLocal()
     try:

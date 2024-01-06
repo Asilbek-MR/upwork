@@ -1,4 +1,4 @@
-import sqlalchemy as sql
+from sqlalchemy import Boolean, Column, String, Integer, ForeignKey,DateTime
 import sqlalchemy.orm as orm
 import datetime as dt
 
@@ -6,27 +6,27 @@ from .database import Base
 
 class User(Base):
     __tablename__ = "users"
-    id = sql.Column(sql.Integer, primary_key=True, index=True)
-    email = sql.Column(sql.String, unique=True, index=True)
-    password = sql.Column(sql.String)
+    id = Column(Integer, primary_key=True, index=True)
+    email = Column(String, unique=True, index=True)
+    password = Column(String)
     leads = orm.relationship("Lead", back_populates="owner")
     
 
 class Lead(Base):
     __tablename__ = "leads"
-    id = sql.Column(sql.Integer, primary_key=True, index=True)
-    owner_id = sql.Column(sql.Integer, sql.ForeignKey("users.id"))
-    first_name = sql.Column(sql.String, index=True)
-    last_name = sql.Column(sql.String, index=True)
-    email = sql.Column(sql.String, index=True)
-    company = sql.Column(sql.String, index=True, default="")
-    note = sql.Column(sql.String, default="")
-    date_created = sql.Column(sql.DateTime, default=dt.datetime.utcnow)
+    id = Column(Integer, primary_key=True, index=True)
+    owner_id = Column(Integer, ForeignKey("users.id"))
+    first_name = Column(String, index=True)
+    last_name = Column(String, index=True)
+    email = Column(String, index=True)
+    company = Column(String, index=True, default="")
+    note = Column(String, default="")
+    date_created = Column(DateTime, default=dt.datetime.utcnow)
     owner = orm.relationship("User", back_populates="leads")
 
 
 class Post(Base):
     __tablename__ = "post"
-    id = sql.Column(sql.Integer, primary_key=True, index=True)
-    title = sql.Column(sql.String, unique=True, index=True)
-    summary = sql.Column(sql.String)
+    id = Column(Integer, primary_key=True, index=True)
+    title = Column(String, unique=True, index=True)
+    summary = Column(String)
