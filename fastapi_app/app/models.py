@@ -1,4 +1,4 @@
-from sqlalchemy import Boolean, Column, String, Integer, ForeignKey,DateTime
+from sqlalchemy import Column, String, Integer, ForeignKey,DateTime
 import sqlalchemy.orm as orm
 import datetime as dt
 

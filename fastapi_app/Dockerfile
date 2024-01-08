@@ -25,7 +25,7 @@ FROM python:3.9
 RUN pip install -r requirements.txt & pip install --upgrade pip 
 RUN pip install uvicorn fastapi pydantic
 RUN pip install SQLAlchemy mysql-connector-python databases aiomysql mysqlclient pymysql
-
+RUN apt-get update
 # Copy the FastAPI app files
 COPY . /app
 

@@ -27,13 +27,13 @@ async def create_user(user:UserCreate,db:orm.Session):
     return user_obj
 
 
-# async def get_title(title:str, db:orm.Session):
-#     return db.query(Post).filter(Post.title==title).first()
+async def get_title(title:str, db:orm.Session):
+    return db.query(Post).filter(Post.title==title).first()
 
 
-# async def create_post(post:Post,db:orm.Session):
-#     user_obj=Post(title=post.title)
-#     db.add(user_obj)
-#     db.commit()
-#     db.refresh(user_obj)
-#     return user_obj
+async def create_post(post:Post,db:orm.Session):
+    user_obj=Post(title=post.title,summary=post.summary)
+    db.add(user_obj)
+    db.commit()
+    db.refresh(user_obj)
+    return user_obj
